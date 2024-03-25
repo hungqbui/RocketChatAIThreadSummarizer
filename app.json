@@ -1,0 +1,48 @@
+{
+    "id": "a78a0118-601a-4044-86f4-e0375476182c",
+    "version": "0.0.1",
+    "requiredApiVersion": "^1.19.0",
+    "iconFile": "icon.png",
+    "author": {
+        "name": "Hung Bui",
+        "homepage": "quanghungbui0801@gmail.com",
+        "support": "quanghungbui0801@gmail.com"
+    },
+    "name": "AISummarizer",
+    "nameSlug": "aisummarizer",
+    "classFile": "AiSummarizerApp.ts",
+    "description": "Summarizes text",
+    "implements": [],
+    "permissions": [
+        {
+            "name": "user.read"
+        },
+        {
+            "name": "user.write"
+        },
+        {
+            "name": "room.read"
+        },
+        {
+            "name": "room.write"
+        },
+        {
+            "name": "message.read"
+        },
+        {
+            "name": "message.write"
+        },
+        {
+            "name": "slashcommand"
+        },
+        {
+            "name": "api"
+        },
+        {
+            "name": "networking"
+        },
+        {
+            "name": "threads.read"
+        }
+    ]
+}
