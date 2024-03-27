@@ -114,7 +114,7 @@ export class Summarizer implements ISlashCommand {
         
         await persis.updateByAssociation(threadAssociation, currentLog, true)
         
-        message.setText(summary + "\n\n\n" + cacheString);
+        message.setText(summary);
 
         modify.getCreator().finish(message);
     }
