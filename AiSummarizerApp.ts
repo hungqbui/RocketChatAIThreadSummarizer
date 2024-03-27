@@ -8,8 +8,6 @@ import { IAppInfo } from '@rocket.chat/apps-engine/definition/metadata';
 
 import { Summarizer } from './commands/Summarizer';
 
-
-
 export class AiSummarizerApp extends App {
 
     constructor(info: IAppInfo, logger: ILogger, accessors: IAppAccessors) {

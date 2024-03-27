@@ -1,12 +1,12 @@
 import { IHttp, IModify, IPersistence, IRead } from "@rocket.chat/apps-engine/definition/accessors";
+import { RocketChatAssociationRecord, RocketChatAssociationModel } from "@rocket.chat/apps-engine/definition/metadata";
 import { SlashCommandContext, ISlashCommand } from "@rocket.chat/apps-engine/definition/slashcommands";
 
 type ThreadCache = {
-    [threadId: string]: {
-        summary: string;
-        numberOfMessages: number;
-    }
+    summary: string;
+    numOfMSGs: number;
 }
+
 
 export class Summarizer implements ISlashCommand {
     public command = "summarize";
@@ -14,13 +14,10 @@ export class Summarizer implements ISlashCommand {
     public i18nDescription = "";
     public providesPreview = false;
 
-    private static threadCache: ThreadCache = {};
-
     private async summarizeText(text: string, http: IHttp): Promise<string> {
         const headers = {
             "Content-Type": "application/json",
         }
-
         
         const prompt = `You are a summarizer bot for a chat server. You need to summarize dialogues in a concise and include noteworthy details. The dialogue is as follows:\n\n${text}`
 
@@ -34,7 +31,7 @@ export class Summarizer implements ISlashCommand {
         
         try {
             
-            const response = await http.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyAytI4VspGuVedM-VT4ELgaqpP1usbDDtY", {
+            const response = await http.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=<GEMINI_API_KEY>", {
                 headers: headers,
                 data: payload,
             })
@@ -79,6 +76,10 @@ export class Summarizer implements ISlashCommand {
         }
 
         thread.shift();
+        const threadAssociation = new RocketChatAssociationRecord(RocketChatAssociationModel.MISC, threadId)
+        const persistentReader = read.getPersistenceReader()
+
+        const cache = await persistentReader.readByAssociation(threadAssociation)
 
         const args = context.getArguments();
         
@@ -91,21 +92,29 @@ export class Summarizer implements ISlashCommand {
             humanMessages++;
         }
         
-        if (args[0] != "regen" && Summarizer.threadCache[threadId] && Summarizer.threadCache[threadId].numberOfMessages === humanMessages) {
-            message.setText(Summarizer.threadCache[threadId].summary);
+        const foundCache = cache[0] || undefined;
+
+        if (args[0] != "regen" && foundCache && foundCache["numOfMSGs"] === humanMessages) {
+            message.setText(foundCache["summary"]);
             modify.getCreator().finish(message);
 
             return;
         }
 
-        const summary = await this.summarizeText(res, http);
+        const summary =  await this.summarizeText(res, http);
 
-        message.setText(summary + args);
+        let cacheString = ""
+        cache.forEach((obj) => { cacheString += JSON.stringify(obj) })
 
-        Summarizer.threadCache[threadId] = {
-            summary,
-            numberOfMessages: humanMessages,
+        
+        const currentLog = {
+            summary: summary,
+            numOfMSGs: humanMessages
         }
+        
+        await persis.updateByAssociation(threadAssociation, currentLog, true)
+        
+        message.setText(summary + "\n\n\n" + cacheString);
 
         modify.getCreator().finish(message);
     }
